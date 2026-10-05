@@ -1,0 +1,4 @@
+# Paquetes del rootfs del TARGET (uno por línea).
+base
+linux
+mkinitcpio

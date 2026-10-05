@@ -7,7 +7,7 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 - M0-02 Workspace Cargo + `scripts/` (`bootstrap`, `build`, `test`, `run`, `clean`) con comprobación del host — CLOSED ([issue](issues/M0-02-workspace-y-scripts.md))
 
 ## M1 — Target arrancable
-- M1-01 Rootfs Arch mínimo vía contenedor (`pacstrap`)
+- M1-01 Rootfs Arch mínimo vía contenedor (`pacstrap`) — CLOSED
 - M1-02 Imagen de disco UEFI (GPT + ESP + systemd-boot) en `build/`
 - M1-03 `scripts/run` en QEMU/KVM + OVMF, consola serie a fichero de log
 - M1-04 Prueba de arranque automatizada (espera `login:` por serie)

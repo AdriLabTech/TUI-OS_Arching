@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# M1-01: construye build/rootfs.tar (rootfs Arch mínimo) en un contenedor.
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+docker info >/dev/null 2>&1 || { echo "Docker apagado: sudo systemctl start docker" >&2; exit 1; }
+mkdir -p "$BUILD_DIR"
+docker run --rm \
+  -v "$ROOT":/work:ro -v "$BUILD_DIR":/out \
+  -v tuios-pacman-cache:/var/cache/pacman/pkg \
+  archlinux:latest bash /work/scripts/container/rootfs.sh
+# El tar lo escribe root del contenedor: devolver la propiedad al usuario.
+docker run --rm -v "$BUILD_DIR":/out archlinux:latest chown "$(id -u):$(id -g)" /out/rootfs.tar
+ls -lh "$BUILD_DIR/rootfs.tar"
