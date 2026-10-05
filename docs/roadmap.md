@@ -3,8 +3,8 @@
 Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCUMENTED → COMMITTED → CLOSED.
 
 ## M0 — Cimientos
-- M0-01 Repo, docs, ADRs, roadmap *(esta entrega)*
-- M0-02 Workspace Cargo + `scripts/` (`bootstrap`, `build`, `test`, `run`, `clean`) con comprobación del host
+- M0-01 Repo, docs, ADRs, roadmap — CLOSED
+- M0-02 Workspace Cargo + `scripts/` (`bootstrap`, `build`, `test`, `run`, `clean`) con comprobación del host — CLOSED ([issue](issues/M0-02-workspace-y-scripts.md))
 
 ## M1 — Target arrancable
 - M1-01 Rootfs Arch mínimo vía contenedor (`pacstrap`)
