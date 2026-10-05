@@ -273,6 +273,14 @@ name = "tui-core"
 version = "0.0.1"
 
 [[package]]
+name = "tui-desktop"
+version = "0.0.1"
+dependencies = [
+ "tui-core",
+ "tui-render",
+]
+
+[[package]]
 name = "tui-render"
 version = "0.0.1"
 dependencies = [

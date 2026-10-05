@@ -1,0 +1,10 @@
+[package]
+name = "tui-desktop"
+description = "Escritorio TUI de TUI-OS: barra, lanzador, paneles y aplicaciones de sistema"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+tui-core = { path = "../tui-core" }
+tui-render = { path = "../tui-render" }
