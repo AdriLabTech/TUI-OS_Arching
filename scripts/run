@@ -1,7 +1,25 @@
 #!/usr/bin/env bash
-# Arranca el TARGET en QEMU/KVM. Pendiente de M1-03.
+# M1-03: arranca el TARGET en QEMU/KVM con OVMF. Consola serie en esta terminal
+# (salir: Ctrl-A X). Variables: LOG=fichero (copia de la serie), MEM, CPUS, DISPLAY_MODE.
+# La imagen se abre con snapshot: los cambios NO persisten salvo SNAPSHOT=0.
 set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 img="$BUILD_DIR/tuios.img"
-[ -f "$img" ] || { echo "No hay imagen ($img). La imagen del target llega con M1-02." >&2; exit 1; }
-echo "run: pendiente de M1-03" >&2; exit 1
+[ -f "$img" ] || { echo "No hay imagen ($img): ejecuta scripts/rootfs y scripts/image" >&2; exit 1; }
+need qemu-system-x86_64 || { echo "Falta qemu-system-x86_64" >&2; exit 1; }
+code=""; vars_tpl=""
+for d in /usr/share/edk2/x64 /usr/share/edk2 /usr/share/ovmf; do
+  for c in OVMF_CODE.4m.fd OVMF_CODE_4M.fd; do [ -r "$d/$c" ] && code="$d/$c"; done
+  for v in OVMF_VARS.4m.fd OVMF_VARS_4M.fd; do [ -r "$d/$v" ] && vars_tpl="$d/$v"; done
+  [ -n "$code" ] && [ -n "$vars_tpl" ] && break
+done
+[ -n "$code" ] && [ -n "$vars_tpl" ] || { echo "OVMF no encontrado (edk2-ovmf)" >&2; exit 1; }
+vars="$BUILD_DIR/OVMF_VARS.fd"; [ -f "$vars" ] || cp "$vars_tpl" "$vars"
+accel=(-accel kvm -cpu host); [ -w /dev/kvm ] || { echo "aviso: sin KVM, usando TCG (lento)" >&2; accel=(-accel tcg); }
+serial=(-serial mon:stdio)
+[ -n "${LOG:-}" ] && serial=(-chardev stdio,id=ser,mux=on,logfile="$LOG" -serial chardev:ser -mon chardev=ser)
+exec qemu-system-x86_64 "${accel[@]}" -machine q35 -smp "${CPUS:-2}" -m "${MEM:-1024}" \
+  -drive if=pflash,format=raw,readonly=on,file="$code" \
+  -drive if=pflash,format=raw,file="$vars" \
+  -drive file="$img",format=raw,if=virtio,snapshot="$([ "${SNAPSHOT:-1}" = 0 ] && echo off || echo on)" \
+  -nic user,model=virtio-net-pci -display "${DISPLAY_MODE:-none}" "${serial[@]}"

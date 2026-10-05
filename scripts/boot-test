@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# M1-04: arranca el TARGET sin interfaz y exige ver el prompt de login por la serie.
+# Salida 0 = arrancó; 1 = no apareció en TIMEOUT s. El log queda en build/boot.log.
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+TIMEOUT=${TIMEOUT:-90}; log="$BUILD_DIR/boot.log"; mkdir -p "$BUILD_DIR"; : > "$log"
+LOG="$log" "$ROOT/scripts/run" </dev/null >/dev/null 2>&1 &
+qpid=$!
+trap 'kill $qpid 2>/dev/null || true; wait $qpid 2>/dev/null || true' EXIT
+for ((i=0; i<TIMEOUT; i++)); do
+  if grep -aq 'tuios login:' "$log"; then
+    echo "OK: login alcanzado en ~${i}s ($(grep -a -m1 'Linux version' "$log" | cut -c1-60))"; exit 0
+  fi
+  kill -0 $qpid 2>/dev/null || { echo "FALLO: QEMU terminó antes del login" >&2; tail -20 "$log" >&2; exit 1; }
+  sleep 1
+done
+echo "FALLO: sin login en ${TIMEOUT}s" >&2; tail -20 "$log" >&2; exit 1
