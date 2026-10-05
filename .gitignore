@@ -1,0 +1,7 @@
+# build
+/target/
+/build/
+*.img
+*.qcow2
+*.iso
+OVMF_VARS*.fd
