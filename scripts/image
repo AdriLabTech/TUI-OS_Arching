@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# M1-02: build/rootfs.tar -> build/tuios.img (imagen de disco UEFI, sin root en el host).
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+[ -f "$BUILD_DIR/rootfs.tar" ] || { echo "Falta build/rootfs.tar: ejecuta scripts/rootfs" >&2; exit 1; }
+docker info >/dev/null 2>&1 || { echo "Docker apagado: sudo systemctl start docker" >&2; exit 1; }
+docker run --rm \
+  -v "$ROOT":/work:ro -v "$BUILD_DIR":/out \
+  -v tuios-pacman-cache:/var/cache/pacman/pkg \
+  -e IMAGE_SIZE_MIB="${IMAGE_SIZE_MIB:-4096}" \
+  archlinux:latest bash -c "bash /work/scripts/container/image.sh && chown $(id -u):$(id -g) /out/tuios.img"
+ls -lsh "$BUILD_DIR/tuios.img"
