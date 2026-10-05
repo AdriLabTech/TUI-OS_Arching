@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Niveles 1-2: formato, clippy (warnings = error) y tests unitarios.
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+cd "$ROOT"
+cargo fmt --all -- --check
+cargo clippy --workspace --all-targets -- -D warnings
+cargo test --workspace

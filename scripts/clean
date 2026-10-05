@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Borra solo artefactos generados (target/ y build/).
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+cd "$ROOT" && cargo clean && rm -rf -- "$BUILD_DIR"

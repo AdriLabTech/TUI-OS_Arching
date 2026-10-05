@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Compila el workspace Rust. La imagen del target llega con M1.
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+cd "$ROOT" && cargo build --workspace "$@"

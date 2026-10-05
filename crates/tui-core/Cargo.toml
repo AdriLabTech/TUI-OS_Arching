@@ -1,0 +1,6 @@
+[package]
+name = "tui-core"
+description = "Núcleo del runtime TUI de TUI-OS (Cell, Buffer, Surface: M2)"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true

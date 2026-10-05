@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Comprueba el HOST (solo lectura; no instala ni modifica nada).
+set -u
+. "$(dirname "$0")/lib.sh"
+fail=0
+check() { # nombre comando [opcional]
+  if need "$2"; then printf '  ok       %s\n' "$1"
+  elif [ "${3:-}" = optional ]; then printf '  opcional %s (falta)\n' "$1"
+  else printf '  FALTA    %s\n' "$1"; fail=1; fi
+}
+echo "HOST: $(. /etc/os-release; echo "$PRETTY_NAME") · $(uname -m) · $(grep -c ^processor /proc/cpuinfo) CPU · $(awk '/MemTotal/{printf "%d MiB",$2/1024}' /proc/meminfo)"
+echo "Herramientas:"
+check git git; check cargo cargo; check rustc rustc; check qemu-system-x86_64 qemu-system-x86_64
+check docker docker; check "gh" gh optional
+echo "Virtualización:"
+if [ -w /dev/kvm ]; then echo "  ok       /dev/kvm accesible"; else echo "  FALTA    /dev/kvm accesible"; fail=1; fi
+fw=""; for f in /usr/share/edk2/x64/OVMF_CODE.4m.fd /usr/share/edk2/OVMF_CODE_4M.fd /usr/share/ovmf/OVMF_CODE_4M.fd; do [ -r "$f" ] && fw="$f" && break; done
+if [ -n "$fw" ]; then echo "  ok       OVMF: $fw"; else echo "  FALTA    OVMF (edk2-ovmf)"; fail=1; fi
+echo "Docker daemon:"
+if need docker && docker info >/dev/null 2>&1; then echo "  ok       activo"; else echo "  apagado  (necesario desde M1: sudo systemctl start docker)"; fi
+[ "$fail" -eq 0 ] && echo "Host listo." || { echo "Host incompleto."; exit 1; }

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Arranca el TARGET en QEMU/KVM. Pendiente de M1-03.
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+img="$BUILD_DIR/tuios.img"
+[ -f "$img" ] || { echo "No hay imagen ($img). La imagen del target llega con M1-02." >&2; exit 1; }
+echo "run: pendiente de M1-03" >&2; exit 1
