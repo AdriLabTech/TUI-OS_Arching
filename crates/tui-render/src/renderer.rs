@@ -102,6 +102,9 @@ impl Renderer {
         let mut cursor: Option<(u16, u16)> = None;
         let mut current: Option<Style> = None;
         for (x, y, cell) in changed {
+            if cell.is_continuation() {
+                continue; // la dibuja el carácter ancho de su izquierda
+            }
             if cursor != Some((x, y)) {
                 queue!(out, MoveTo(x, y))?;
             }
@@ -111,7 +114,8 @@ impl Renderer {
             }
             queue!(out, Print(cell.ch))?;
             // En la última columna el cursor queda en un estado de "wrap pendiente": no lo damos por conocido.
-            cursor = (x + 1 < buf.width()).then_some((x + 1, y));
+            let next = x + cell.width();
+            cursor = (next < buf.width()).then_some((next, y));
         }
         queue!(out, SetAttribute(Attribute::Reset))?;
         out.flush()?;
@@ -247,5 +251,27 @@ mod tests {
         render(&mut r, &b);
         r.invalidate();
         assert!(render(&mut r, &b).contains("\x1b[2J"));
+    }
+}
+
+#[cfg(test)]
+mod wide_tests {
+    use super::*;
+    use tui_core::Style;
+
+    #[test]
+    fn wide_char_is_printed_once_and_continuation_is_skipped() {
+        let mut r = Renderer::new();
+        let mut b = Buffer::new(6, 1);
+        b.put_str(0, 0, "日x", Style::default());
+        let mut out = Vec::new();
+        r.render(&mut out, &b).unwrap();
+        let s = String::from_utf8_lossy(&out);
+        assert_eq!(s.matches('日').count(), 1);
+        assert!(!s.contains('\0'));
+        // 'x' va justo tras el ancho 2: el cursor no necesita reposicionarse.
+        let tail = s.split('日').nth(1).unwrap();
+        assert!(tail.trim_start_matches(|c| c != 'x').starts_with('x'));
+        assert!(!tail.split('x').next().unwrap().contains("\x1b[1;"));
     }
 }

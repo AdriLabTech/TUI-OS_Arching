@@ -22,13 +22,22 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 
 ## M3 — Compositor
 - M3-01 Superficies, z-order, foco, recorte y enrutado de eventos — CLOSED ([issue](issues/M3-01-compositor.md))
-- M3-02 Regiones sucias en la composición; decoración y arrastre de ventanas — PLANNED
+- M3-02 Ancho Unicode en `Cell`/`Buffer`/renderer (CJK, emoji; prerrequisito del terminal embebido) — CLOSED ([issue](issues/M3-02-ancho-unicode.md))
+- M3-03 Regiones sucias en la composición y disposición en mosaico (teclado primero) — PLANNED
 
-## M4 — Sesión
-- Servicio systemd `tui-session`, autologin a la TUI, entorno de recuperación
+## M4 — Sesión (antes del shell: no se abre una shell como root)
+- Usuario no-root con sesión propia, servicio `tui-session`, autologin a la TUI, entorno de recuperación
 
-## M5 — Apps de primera parte
-- `tui-system`, `tui-files`, `tui-processes`, convenciones de teclas (F1, ESC, CTRL+Q, ALT+TAB)
+## M5 — Terminal embebido (`tui-term`)
+- PTY + intérprete VT (crates `portable-pty` y `vte`, a justificar en su ADR) como ventana del compositor
+- Da shell, `htop`, `vim`, `pacman`… sin reescribirlos; es lo que hace usable el sistema
 
-## M6 — Comandos y paquetes
+## M6 — Apps de primera parte y comandos
+- Secciones del escritorio como apps/ventanas, convenciones de teclas (F1, ESC, CTRL+Q, ALT+TAB)
 - `tui system|network|processes|storage|settings|install`, frontend de pacman
+
+### Cambios respecto al plan anterior (2026-10-05)
+- Arrastre de ventanas con ratón y bordes decorados: **descartados del camino crítico**. La consola de Linux no tiene ratón (deuda de M2-05) y el sistema es teclado primero; mosaico + ALT+TAB rinde más.
+- Ancho Unicode sube a M3-02: cambia `Cell` y es mejor hacerlo antes de que dependan de él más apps.
+- Terminal embebido (antes ausente) pasa a ser el hito central: un compositor sin nada que componer salvo el escritorio actual no aporta; un terminal sí.
+- Sesión (M4) antes del terminal: evita una shell root en tty1.

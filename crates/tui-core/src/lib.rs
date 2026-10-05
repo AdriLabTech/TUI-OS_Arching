@@ -11,7 +11,7 @@ pub mod geometry;
 pub mod surface;
 
 pub use buffer::Buffer;
-pub use cell::{Attrs, Cell, Color, Style};
+pub use cell::{Attrs, Cell, Color, Style, char_width};
 pub use compositor::{Compositor, Routed, WindowId};
 pub use event::{Event, KeyCode, KeyEvent, Modifiers, MouseButton, MouseEvent, MouseKind};
 pub use geometry::Rect;

@@ -149,3 +149,53 @@ fn modifiers_combine() {
     assert!(m.contains(Modifiers::SHIFT) && m.contains(Modifiers::ALT));
     assert!(!m.contains(Modifiers::CTRL));
 }
+
+fn row(b: &Buffer) -> Vec<char> {
+    (0..b.width()).map(|x| b.get(x, 0).unwrap().ch).collect()
+}
+
+#[test]
+fn wide_char_takes_two_cells_with_continuation() {
+    let mut b = Buffer::new(6, 1);
+    let n = b.put_str(1, 0, "a日b", Style::default());
+    assert_eq!(n, 4);
+    assert_eq!(row(&b), [' ', 'a', '日', Cell::CONT, 'b', ' ']);
+    assert_eq!(b.get(2, 0).unwrap().width(), 2);
+}
+
+#[test]
+fn wide_char_that_does_not_fit_becomes_space() {
+    let mut b = Buffer::new(3, 1);
+    b.put_str(2, 0, "日", Style::default());
+    assert_eq!(row(&b), [' ', ' ', ' ']);
+}
+
+#[test]
+fn zero_width_chars_are_dropped() {
+    let mut b = Buffer::new(4, 1);
+    let n = b.put_str(0, 0, "e\u{301}x", Style::default());
+    assert_eq!((n, row(&b)[..2].to_vec()), (2, vec!['e', 'x']));
+}
+
+#[test]
+fn overwriting_half_of_a_wide_char_cleans_the_other_half() {
+    let mut b = Buffer::new(4, 1);
+    b.put_str(0, 0, "日", Style::default());
+    b.set(1, 0, Cell::new('x', Style::default()));
+    assert_eq!(row(&b)[..2], [' ', 'x']);
+    b.put_str(0, 0, "日", Style::default());
+    b.set(0, 0, Cell::new('y', Style::default()));
+    assert_eq!(row(&b)[..2], ['y', ' ']);
+}
+
+#[test]
+fn blit_clipping_never_leaves_half_a_wide_char() {
+    let mut src = Buffer::new(4, 1);
+    src.put_str(0, 0, "日本", Style::default());
+    let mut dst = Buffer::new(4, 1);
+    dst.blit(&src, -1, 0); // corta la mitad izquierda de 日
+    assert_eq!(row(&dst), [' ', '本', Cell::CONT, ' ']);
+    let mut dst = Buffer::new(4, 1);
+    dst.blit(&src, 1, 0); // corta la mitad derecha de 本
+    assert_eq!(row(&dst), [' ', '日', Cell::CONT, ' ']);
+}

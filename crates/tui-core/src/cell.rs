@@ -53,9 +53,31 @@ pub struct Cell {
 }
 
 impl Cell {
+    /// Carácter de la segunda mitad de un carácter ancho; no se dibuja.
+    pub const CONT: char = '\0';
+
     pub const fn new(ch: char, style: Style) -> Cell {
         Cell { ch, style }
     }
+
+    /// Segunda celda de un carácter ancho (2 columnas).
+    pub const fn continuation(style: Style) -> Cell {
+        Cell::new(Cell::CONT, style)
+    }
+
+    pub const fn is_continuation(&self) -> bool {
+        self.ch == Cell::CONT
+    }
+
+    /// Columnas que ocupa: 2 si es ancho, 1 en el resto (la continuación cuenta 1).
+    pub fn width(&self) -> u16 {
+        char_width(self.ch).max(1)
+    }
+}
+
+/// Columnas de un carácter: 0 (combinante/control), 1 o 2 (CJK, emoji).
+pub fn char_width(ch: char) -> u16 {
+    unicode_width::UnicodeWidthChar::width(ch).unwrap_or(0) as u16
 }
 
 impl Default for Cell {
