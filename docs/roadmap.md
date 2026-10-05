@@ -29,8 +29,13 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 - Usuario no-root con sesión propia, servicio `tui-session`, autologin a la TUI, entorno de recuperación
 
 ## M5 — Terminal embebido (`tui-term`)
-- PTY + intérprete VT (crates `portable-pty` y `vte`, a justificar en su ADR) como ventana del compositor
-- Da shell, `htop`, `vim`, `pacman`… sin reescribirlos; es lo que hace usable el sistema
+- M5-01 Spike y [ADR-0003](adr/0003-terminal-embebido-pty-y-vt.md): `portable-pty` + `vt100` (o `vte`); `bash`, `htop` y `vim` en una ventana del compositor, con resize — PLANNED
+- M5-02 Texto real en el terminal: grafemas (`unicode-segmentation`: combinantes y emoji ZWJ, hoy descartados o partidos) — PLANNED
+- M5-03 Deuda de `unicode-width` heredada de M3-02 — PLANNED:
+  - el ancho de emoji lo decide cada emulador, no el estándar: probar en el target y en un terminal real, con tabla de excepciones si hace falta;
+  - la consola de Linux (Terminus) no tiene CJK ni emoji: glifo de reemplazo y documentarlo, o fuente con cobertura;
+  - `cargo audit` sobre `unicode-width`, `unicode-segmentation`, `portable-pty` y `vt100`/`vte` al añadirlas.
+- Prerrequisitos: M3-03 (mosaico) y M4 (sesión no-root).
 
 ## M6 — Apps de primera parte y comandos
 - Secciones del escritorio como apps/ventanas, convenciones de teclas (F1, ESC, CTRL+Q, ALT+TAB)
@@ -38,6 +43,6 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 
 ### Cambios respecto al plan anterior (2026-10-05)
 - Arrastre de ventanas con ratón y bordes decorados: **descartados del camino crítico**. La consola de Linux no tiene ratón (deuda de M2-05) y el sistema es teclado primero; mosaico + ALT+TAB rinde más.
-- Ancho Unicode sube a M3-02: cambia `Cell` y es mejor hacerlo antes de que dependan de él más apps.
+- Ancho Unicode sube a M3-02: cambia `Cell` y es mejor hacerlo antes de que dependan de él más apps. Sus limitaciones conocidas (grafemas, emoji, Terminus) se tratan en M5-02/03.
 - Terminal embebido (antes ausente) pasa a ser el hito central: un compositor sin nada que componer salvo el escritorio actual no aporta; un terminal sí.
 - Sesión (M4) antes del terminal: evita una shell root en tty1.

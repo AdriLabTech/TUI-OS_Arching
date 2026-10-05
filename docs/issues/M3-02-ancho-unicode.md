@@ -18,5 +18,5 @@ Que CJK y emoji ocupen 2 columnas sin descuadrar el renderer; prerrequisito del 
 - UNVERIFIED: aspecto en un terminal real con fuente CJK; la consola de Linux pinta glifos de reemplazo
 
 ## Limitaciones / deuda
-- Sin grafemas: `e` + U+0301 pierde el acento. Considerar `unicode-segmentation` en M5.
-- El ancho de emoji depende del terminal; `unicode-width` sigue el estándar, no cada emulador.
+- Sin grafemas: `e` + U+0301 pierde el acento. Planificado en M5-02 (`unicode-segmentation`).
+- El ancho de emoji depende del terminal; `unicode-width` sigue el estándar, no cada emulador. Planificado en M5-03.
