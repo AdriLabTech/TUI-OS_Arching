@@ -15,7 +15,7 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 ## M2 — Runtime TUI
 - M2-01 `tui-core`: `Cell`, `Buffer`, `Surface` (tests unitarios) — CLOSED
 - M2-02 Renderer a terminal con detección de tamaño y evento de resize — CLOSED (target pendiente)
-- M2-03 Entrada: teclado y ratón como eventos
+- M2-03 Entrada: teclado y ratón como eventos — CLOSED (target pendiente) · [informe M2](milestones/M2-informe.md)
 
 ## M3 — Compositor
 - Superficies, z-order, foco, recorte, regiones sucias, enrutado de eventos

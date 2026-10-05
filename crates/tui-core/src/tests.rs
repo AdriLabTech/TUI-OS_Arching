@@ -134,3 +134,18 @@ fn surface_resize_is_a_normal_event() {
     assert_eq!((s.width(), s.height()), (6, 2));
     assert_eq!(s.take_damage(), Rect::new(0, 0, 6, 2));
 }
+
+#[test]
+fn key_event_matches_exact_combination() {
+    let k = KeyEvent::new(KeyCode::Char('q'), Modifiers::CTRL);
+    assert!(k.is(KeyCode::Char('q'), Modifiers::CTRL));
+    assert!(!k.is(KeyCode::Char('q'), Modifiers::NONE));
+    assert!(!k.is(KeyCode::Char('q'), Modifiers::CTRL.union(Modifiers::ALT)));
+}
+
+#[test]
+fn modifiers_combine() {
+    let m = Modifiers::SHIFT.union(Modifiers::ALT);
+    assert!(m.contains(Modifiers::SHIFT) && m.contains(Modifiers::ALT));
+    assert!(!m.contains(Modifiers::CTRL));
+}
