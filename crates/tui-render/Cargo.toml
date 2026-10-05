@@ -1,0 +1,10 @@
+[package]
+name = "tui-render"
+description = "Renderer de TUI-OS: Buffer -> terminal (secuencias ANSI vía crossterm)"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+crossterm = "0.29.0"
+tui-core = { version = "0.0.1", path = "../tui-core" }
