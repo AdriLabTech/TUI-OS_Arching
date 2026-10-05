@@ -43,6 +43,11 @@ impl Terminal {
         }
     }
 
+    /// ¿Es la consola de texto de Linux (`TERM=linux`)? Solo tiene 16 colores.
+    pub fn is_linux_console() -> bool {
+        std::env::var("TERM").is_ok_and(|t| t == "linux")
+    }
+
     pub fn writer(&mut self) -> &mut Stdout {
         &mut self.out
     }
@@ -50,6 +55,9 @@ impl Terminal {
 
 impl Drop for Terminal {
     fn drop(&mut self) {
+        if Terminal::is_linux_console() {
+            let _ = self.out.write_all(b"\x1b]R"); // restaura la paleta por defecto
+        }
         let _ = execute!(self.out, Show, DisableMouseCapture, LeaveAlternateScreen);
         let _ = disable_raw_mode();
         let _ = self.out.flush();

@@ -7,5 +7,5 @@ pub mod input;
 mod renderer;
 mod terminal;
 
-pub use renderer::Renderer;
+pub use renderer::{Palette, Renderer};
 pub use terminal::Terminal;
