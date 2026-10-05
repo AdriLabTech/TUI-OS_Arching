@@ -23,7 +23,8 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 ## M3 — Compositor
 - M3-01 Superficies, z-order, foco, recorte y enrutado de eventos — CLOSED ([issue](issues/M3-01-compositor.md))
 - M3-02 Ancho Unicode en `Cell`/`Buffer`/renderer (CJK, emoji; prerrequisito del terminal embebido) — CLOSED ([issue](issues/M3-02-ancho-unicode.md))
-- M3-03 Regiones sucias en la composición y disposición en mosaico (teclado primero) — PLANNED
+- M3-03 Fondo, recomposición solo si hay cambios, mosaico y ALT+TAB (corrige restos de M3-01) — CLOSED ([issue](issues/M3-03-mosaico-y-composicion.md))
+- M3-04 Regiones sucias por rectángulo: solo si una medición lo justifica — PLANNED
 
 ## M4 — Sesión (antes del shell: no se abre una shell como root)
 - Usuario no-root con sesión propia, servicio `tui-session`, autologin a la TUI, entorno de recuperación

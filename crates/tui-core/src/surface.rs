@@ -54,6 +54,11 @@ impl Surface {
         self.damage = Rect::new(0, 0, width, height);
     }
 
+    /// Rectángulo dañado desde la última composición (vacío si no hay).
+    pub fn damage(&self) -> Rect {
+        self.damage
+    }
+
     /// Devuelve el rectángulo dañado desde la última llamada y lo reinicia.
     pub fn take_damage(&mut self) -> Rect {
         std::mem::take(&mut self.damage)
