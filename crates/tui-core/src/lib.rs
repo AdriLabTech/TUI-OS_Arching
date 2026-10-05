@@ -1,17 +1,20 @@
-//! Núcleo del runtime TUI de TUI-OS.
+//! Núcleo del runtime TUI de TUI-OS: celdas, buffers y superficies.
 //!
-//! Marcador del workspace (M0-02). Las primitivas (`Cell`, `Buffer`, `Surface`)
-//! llegan con el issue M2-01.
+//! La UI lógica trabaja en filas × columnas; el tamaño lo da siempre el backend
+//! de render (M2-02), nunca se fija aquí.
+
+pub mod buffer;
+pub mod cell;
+pub mod geometry;
+pub mod surface;
+
+pub use buffer::Buffer;
+pub use cell::{Attrs, Cell, Color, Style};
+pub use geometry::Rect;
+pub use surface::Surface;
 
 /// Nombre del sistema, para banners y `tui system info`.
 pub const OS_NAME: &str = "TUI-OS";
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn os_name_is_set() {
-        assert_eq!(OS_NAME, "TUI-OS");
-    }
-}
+mod tests;

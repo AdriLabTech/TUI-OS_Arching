@@ -13,7 +13,7 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 - M1-04 Prueba de arranque automatizada (espera `login:` por serie) — CLOSED
 
 ## M2 — Runtime TUI
-- M2-01 `tui-core`: `Cell`, `Buffer`, `Surface` (tests unitarios)
+- M2-01 `tui-core`: `Cell`, `Buffer`, `Surface` (tests unitarios) — CLOSED
 - M2-02 Renderer a terminal con detección de tamaño y evento de resize
 - M2-03 Entrada: teclado y ratón como eventos
 
