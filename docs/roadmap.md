@@ -8,9 +8,9 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 
 ## M1 — Target arrancable
 - M1-01 Rootfs Arch mínimo vía contenedor (`pacstrap`) — CLOSED
-- M1-02 Imagen de disco UEFI (GPT + ESP + systemd-boot) en `build/`
-- M1-03 `scripts/run` en QEMU/KVM + OVMF, consola serie a fichero de log
-- M1-04 Prueba de arranque automatizada (espera `login:` por serie)
+- M1-02 Imagen de disco UEFI (GPT + ESP + systemd-boot) en `build/` — CLOSED
+- M1-03 `scripts/run` en QEMU/KVM + OVMF, consola serie a fichero de log — CLOSED
+- M1-04 Prueba de arranque automatizada (espera `login:` por serie) — CLOSED
 
 ## M2 — Runtime TUI
 - M2-01 `tui-core`: `Cell`, `Buffer`, `Surface` (tests unitarios)

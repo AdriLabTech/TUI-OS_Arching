@@ -6,7 +6,7 @@ la interfaz gráfica principal en lugar de un entorno de escritorio?
 Linux (base Arch, systemd) es la infraestructura; TUI-OS es lo que se construye
 encima: runtime TUI, compositor, aplicaciones y comandos de sistema en Rust.
 
-> Estado: **Milestone 0 completo**; siguiente: M1 (target arrancable). Aún no arranca nada.
+> Estado: **Milestone 1 completo**: arranca en QEMU/KVM hasta el login por serie (sin TUI aún). Siguiente: M2.
 
 ## Documentación
 - [Arquitectura](docs/architecture.md)
@@ -23,4 +23,8 @@ El target (TUI-OS) nunca se construye tocando el host: todo va a imágenes en `b
 ./scripts/bootstrap   # comprueba el host (solo lectura)
 ./scripts/build       # compila el workspace
 ./scripts/test        # fmt + clippy + tests
+./scripts/rootfs      # rootfs Arch en contenedor (Docker)
+./scripts/image       # imagen UEFI build/tuios.img
+./scripts/run         # arranca en QEMU/KVM (serie; salir Ctrl-A X)
+./scripts/boot-test   # exige el login por serie
 ```
