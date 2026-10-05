@@ -3,6 +3,10 @@ Description=TUI-OS desktop (tty1)
 After=systemd-user-sessions.service systemd-vconsole-setup.service
 Conflicts=getty@tty1.service
 After=getty@tty1.service
+# Recuperación: 3 fallos en 30 s dejan un login de texto en tty1 en vez de reiniciar sin fin.
+StartLimitIntervalSec=30
+StartLimitBurst=3
+OnFailure=getty@tty1.service
 
 [Service]
 User=tui
