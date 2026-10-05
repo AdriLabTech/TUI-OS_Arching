@@ -20,3 +20,6 @@
 
 ## Bloqueos para M3 (compositor)
 Ninguno técnico. Conviene decidir antes el ancho Unicode, porque cambia `Cell` y el recorte de superficies.
+
+## Adenda (mismo día): escritorio y arranque en QEMU
+Se adelantaron M2-04 (escritorio TUI) y M2-05 (arranque en QEMU, adelanto de M4), a petición del autor, para tener algo visible. La deuda 3 (verificación en el target) queda **cerrada para el renderer, la paleta y el escritorio**; sigue abierta la parte de sesión de usuario no-root, y el ancho Unicode. Suite actual: 51 tests.

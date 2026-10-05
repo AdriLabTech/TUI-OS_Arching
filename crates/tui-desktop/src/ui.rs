@@ -1,5 +1,6 @@
-//! Primitivas de dibujo sobre `Buffer`. Solo glifos disponibles en la consola de Linux
-//! (CP437: bloques, líneas simples) para que se vea igual en kitty y en fbcon.
+//! Primitivas de dibujo sobre `Buffer`. Solo glifos presentes en la fuente de consola
+//! Terminus (ter-v16n, comprobado en su tabla Unicode): `█ ░ ▒ ■`, líneas simples
+//! `─│┌┐└┘├┤┬┴┼` y flechas `↑↓←→►◄`. NO existen `▀ ▄ ▌ ▐ ▓` ni líneas dobles.
 //! Candidatas a promoverse a una crate de widgets cuando exista el compositor (M3).
 
 use tui_core::{Buffer, Cell, Color, Rect, Style};
@@ -67,7 +68,8 @@ pub fn hbar(b: &mut Buffer, x: u16, y: u16, w: u16, frac: f32, fg: Color, bg: Co
 }
 
 /// Gráfico de área con las últimas `r.width` muestras (0..=1), alineado a la derecha.
-/// Cada fila aporta dos niveles: `█` (entera) y `▄` (mitad inferior).
+/// Filas completas `█` y, arriba, un `▒` (≥ media fila) o `░` (resto) para el parcial.
+/// Con valor ≈ 0 deja una línea base tenue para que el gráfico siga visible.
 pub fn area(b: &mut Buffer, r: Rect, data: &[f32], fg: Color, bg: Color) {
     if r.is_empty() {
         return;
@@ -77,15 +79,21 @@ pub fn area(b: &mut Buffer, r: Rect, data: &[f32], fg: Color, bg: Color) {
     let skip = data.len().saturating_sub(w);
     let off = w.saturating_sub(data.len());
     for (i, v) in data.iter().skip(skip).enumerate() {
-        let halves = (v.clamp(0.0, 1.0) * (r.height * 2) as f32).round() as u16;
-        for row in 0..r.height {
-            let y = r.y + r.height - 1 - row;
-            let ch = match halves.saturating_sub(row * 2) {
-                0 => continue,
-                1 => '▄',
-                _ => '█',
+        let x = r.x + (off + i) as u16;
+        let rows = v.clamp(0.0, 1.0) * r.height as f32;
+        let full = rows.floor() as u16;
+        let rem = rows - full as f32;
+        for row in 0..full.min(r.height) {
+            b.set(x, r.y + r.height - 1 - row, Cell::new('█', st));
+        }
+        if full < r.height {
+            let y = r.y + r.height - 1 - full;
+            match rem {
+                m if m >= 0.5 => b.set(x, y, Cell::new('▒', st)),
+                m if m > 0.1 => b.set(x, y, Cell::new('░', st)),
+                _ if full == 0 => b.set(x, y, Cell::new('░', style(theme::LINE, bg))),
+                _ => false,
             };
-            b.set(r.x + (off + i) as u16, y, Cell::new(ch, st));
         }
     }
 }
@@ -144,25 +152,26 @@ mod tests {
     }
 
     #[test]
-    fn area_uses_half_blocks_and_right_aligns() {
-        let mut b = Buffer::new(4, 2);
+    fn area_uses_only_available_glyphs_and_right_aligns() {
+        let mut b = Buffer::new(5, 2);
         area(
             &mut b,
-            Rect::new(0, 0, 4, 2),
-            &[1.0, 0.25],
+            Rect::new(0, 0, 5, 2),
+            &[1.0, 0.25, 0.0],
             theme::INK,
             theme::PAPER,
         );
-        // 2 muestras alineadas a la derecha: columnas 2 y 3
-        assert_eq!(
-            (b.get(2, 0).unwrap().ch, b.get(2, 1).unwrap().ch),
-            ('█', '█')
+        let col = |x| (b.get(x, 0).unwrap().ch, b.get(x, 1).unwrap().ch);
+        // 3 muestras alineadas a la derecha: columnas 2, 3 y 4
+        assert_eq!(col(2), ('█', '█'));
+        assert_eq!(col(3), (' ', '▒'), "0.25 de 2 filas = media fila");
+        assert_eq!(col(4), (' ', '░'), "línea base con 0");
+        assert_eq!(col(0), (' ', ' '));
+        let used: String = (0..5).flat_map(|x| [col(x).0, col(x).1]).collect();
+        assert!(
+            !used.contains(['▄', '▀', '▌', '▐', '▓']),
+            "glifos ausentes en Terminus"
         );
-        assert_eq!(
-            (b.get(3, 0).unwrap().ch, b.get(3, 1).unwrap().ch),
-            (' ', '▄')
-        );
-        assert_eq!(b.get(0, 1).unwrap().ch, ' ');
     }
 
     #[test]

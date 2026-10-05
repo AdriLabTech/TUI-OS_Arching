@@ -10,6 +10,13 @@ pacman -Sy --noconfirm --needed dosfstools mtools e2fsprogs util-linux mkinitcpi
 
 R=/rootfs; W=/tmp/img; mkdir -p $R $W
 tar --numeric-owner -C $R -xf /out/rootfs.tar
+# Configuración propia de TUI-OS y binarios compilados en el host (misma glibc que el rootfs).
+cp -a --no-preserve=ownership /work/config/overlay/. $R/
+if [ -d /out/bin ]; then
+  mkdir -p $R/usr/local/bin
+  cp -a --no-preserve=ownership /out/bin/. $R/usr/local/bin/
+  chmod 0755 $R/usr/local/bin/*
+fi
 KVER=$(ls $R/usr/lib/modules | head -n1)
 echo "kernel: $KVER"
 

@@ -2,3 +2,4 @@
 base
 linux
 mkinitcpio
+terminus-font

@@ -17,7 +17,14 @@ done
 vars="$BUILD_DIR/OVMF_VARS.fd"; [ -f "$vars" ] || cp "$vars_tpl" "$vars"
 accel=(-accel kvm -cpu host); [ -w /dev/kvm ] || { echo "aviso: sin KVM, usando TCG (lento)" >&2; accel=(-accel tcg); }
 serial=(-serial mon:stdio)
-[ -n "${LOG:-}" ] && serial=(-chardev stdio,id=ser,mux=on,logfile="$LOG" -serial chardev:ser -mon chardev=ser)
+if [ -n "${MONITOR:-}" ]; then
+  # Monitor QEMU en un socket aparte (capturas de pantalla, envío de teclas); la serie queda sola.
+  rm -f "$MONITOR"
+  serial=(-serial stdio -monitor "unix:$MONITOR,server,nowait")
+  [ -n "${LOG:-}" ] && serial=(-chardev stdio,id=ser,logfile="$LOG" -serial chardev:ser -monitor "unix:$MONITOR,server,nowait")
+elif [ -n "${LOG:-}" ]; then
+  serial=(-chardev stdio,id=ser,mux=on,logfile="$LOG" -serial chardev:ser -mon chardev=ser)
+fi
 exec qemu-system-x86_64 "${accel[@]}" -machine q35 -smp "${CPUS:-2}" -m "${MEM:-1024}" \
   -drive if=pflash,format=raw,readonly=on,file="$code" \
   -drive if=pflash,format=raw,file="$vars" \

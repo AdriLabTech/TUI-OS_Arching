@@ -479,7 +479,8 @@ impl App {
                 } else {
                     theme::LINE
                 };
-                ui::text(b, r.x, y, 1, "▌", style(marker, bg));
+                // Terminus no trae `▌`; el bloque completo existe en todas las fuentes de consola.
+                ui::text(b, r.x, y, 1, "█", style(marker, bg));
             }
             ui::text(b, r.x + 2, y, 2, &format!("{i:02}"), style(theme::GOLD, bg));
             let fg = if selected {
@@ -532,16 +533,20 @@ impl App {
 
     fn draw_home(&self, b: &mut Buffer, r: Rect) {
         // Disco-sol plano a la derecha: una sola superficie tonal, sin trama.
-        let ry = (r.height / 2).saturating_sub(1).min(r.width / 6);
+        // Ocupa la zona libre sobre las tarjetas (si las hay), con proporción 2:1 de celda.
+        let free_h = if r.height >= 24 && r.width >= 60 {
+            r.height - 8
+        } else {
+            r.height
+        };
+        let ry = (free_h / 2).saturating_sub(1).min(r.width / 8);
         if ry >= 2 {
-            let (cx, cy) = (
-                (r.x + r.width).saturating_sub(ry * 2 + 3),
-                r.y + r.height / 2,
-            );
+            let (cx, cy) = ((r.x + r.width).saturating_sub(ry * 2 + 4), r.y + free_h / 2);
+            let radius = ry as f32 - 0.5; // evita celdas sueltas en los extremos
             for dy in -(ry as i32)..=(ry as i32) {
                 for dx in -(2 * ry as i32)..=(2 * ry as i32) {
                     let (fx, fy) = (dx as f32 / 2.0, dy as f32);
-                    if fx * fx + fy * fy <= (ry * ry) as f32 {
+                    if fx * fx + fy * fy < radius * radius {
                         let (x, y) = (cx as i32 + dx, cy as i32 + dy);
                         if x >= r.x as i32 && y >= r.y as i32 {
                             b.set(
@@ -661,7 +666,10 @@ impl App {
                         x,
                         card.y + 1,
                         w,
-                        &format!("{} elementos", self.files.entries.len()),
+                        &match self.files.entries.len() {
+                            1 => "1 elemento".to_string(),
+                            n => format!("{n} elementos"),
+                        },
                         ink,
                     );
                     let path = self.files.cwd.display().to_string();
@@ -833,7 +841,7 @@ impl App {
                 (false, false) => theme::INK_DIM,
             };
             let (mark, size) = if e.is_dir {
-                ("▸", String::new())
+                ("►", String::new())
             } else {
                 (" ", sys::human(e.size))
             };
@@ -1175,5 +1183,29 @@ mod tests {
         let mut small = Buffer::new(30, 8);
         a.draw(&mut small);
         assert!(text_of(&small).contains("demasiado pequeño"));
+    }
+
+    /// Glifos no ASCII presentes en la fuente de consola Terminus ter-v16n (tabla Unicode comprobada).
+    const CONSOLE_GLYPHS: &str = "█░▒■─│┌┐└┘├┤┬┴┼↑↓←→►◄▲▼·•…«»×±°¿¡ñÑáéíóúüÁÉÍÓÚ";
+
+    #[test]
+    fn every_section_only_uses_glyphs_the_console_font_has() {
+        let mut a = App::new((160, 50));
+        for (w, h) in [(80, 24), (120, 40), (160, 50)] {
+            a.resize(w, h);
+            for (s, _) in SECTIONS {
+                a.section = s;
+                a.tick();
+                let mut b = Buffer::new(w, h);
+                a.draw(&mut b);
+                for ch in text_of(&b).chars() {
+                    assert!(
+                        ch.is_ascii() || CONSOLE_GLYPHS.contains(ch),
+                        "glifo {ch:?} ({:04X}) no existe en Terminus; sección {s:?} a {w}x{h}",
+                        ch as u32
+                    );
+                }
+            }
+        }
     }
 }

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Arranca TUI-OS en una ventana de QEMU (consola gráfica con el escritorio TUI).
+# Teclado: el foco lo captura la ventana (soltar: Ctrl+Alt+G). El ratón no llega a la
+# consola de Linux (no hay gpm): usa el teclado. Recuperación: Ctrl+Alt+2 (tty2) o la
+# consola serie en esta terminal. Salir de QEMU: cerrar la ventana o Ctrl-C aquí.
+set -euo pipefail
+export DISPLAY_MODE="${DISPLAY_MODE:-gtk}" MEM="${MEM:-2048}" CPUS="${CPUS:-4}"
+exec "$(dirname "$0")/run"

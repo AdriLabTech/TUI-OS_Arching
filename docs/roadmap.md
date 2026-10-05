@@ -17,6 +17,9 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 - M2-02 Renderer a terminal con detección de tamaño y evento de resize — CLOSED (target pendiente)
 - M2-03 Entrada: teclado y ratón como eventos — CLOSED (target pendiente) · [informe M2](milestones/M2-informe.md)
 
+- M2-04 Escritorio TUI con identidad propia (adelantado de M5) — CLOSED ([issue](issues/M2-04-escritorio-tui.md))
+- M2-05 El escritorio arranca solo en QEMU (adelanto de M4) — CLOSED ([issue](issues/M2-05-escritorio-en-qemu.md))
+
 ## M3 — Compositor
 - Superficies, z-order, foco, recorte, regiones sucias, enrutado de eventos
 

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Arranca el TARGET sin ventana y captura su pantalla (consola gráfica tty1) a PNG.
+# Uso: scripts/screenshot [tecla | @nombre]...
+#   tecla    se envía a la VM con `sendkey` del monitor de QEMU (down, ret, f1, 2, ctrl-q…)
+#   @nombre  guarda build/shots/nombre.png en ese momento
+# Sin @nombre, guarda build/shots/final.png al terminar. Variable: WAIT (s hasta el escritorio, 14).
+set -euo pipefail
+. "$(dirname "$0")/lib.sh"
+need socat || { echo "Falta socat" >&2; exit 1; }
+sock="$BUILD_DIR/qemu.sock"; log="$BUILD_DIR/screenshot.log"; shots="$BUILD_DIR/shots"
+mkdir -p "$shots"; : > "$log"
+
+mon() { printf '%s\n' "$1" | socat -t 1 - "UNIX-CONNECT:$sock" >/dev/null; }
+
+take() {
+  mon "screendump $shots/$1.ppm"; sleep 1
+  python3 - "$shots/$1" <<'PY'
+import sys
+from PIL import Image
+base = sys.argv[1]
+Image.open(base + ".ppm").save(base + ".png")
+PY
+  rm -f "$shots/$1.ppm"
+  echo "captura: $shots/$1.png"
+}
+
+MONITOR="$sock" LOG="$log" "$ROOT/scripts/run" </dev/null >/dev/null 2>&1 &
+qpid=$!
+trap 'mon quit 2>/dev/null || true; kill $qpid 2>/dev/null || true; wait $qpid 2>/dev/null || true' EXIT
+
+for _ in $(seq 1 100); do [ -S "$sock" ] && break; sleep 0.2; done
+[ -S "$sock" ] || { echo "FALLO: no hay monitor de QEMU" >&2; exit 1; }
+for _ in $(seq 1 90); do grep -aq 'tuios login:' "$log" && break; sleep 1; done
+grep -aq 'tuios login:' "$log" || { echo "FALLO: el target no llegó al login" >&2; tail -20 "$log" >&2; exit 1; }
+sleep "${WAIT:-14}"
+
+shot=0
+for a in "$@"; do
+  case "$a" in
+    @*) take "${a#@}"; shot=1 ;;
+    *) mon "sendkey $a"; sleep 0.8 ;;
+  esac
+done
+[ "$shot" = 1 ] || take final

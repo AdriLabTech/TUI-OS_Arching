@@ -4,6 +4,10 @@ set -euo pipefail
 . "$(dirname "$0")/lib.sh"
 [ -f "$BUILD_DIR/rootfs.tar" ] || { echo "Falta build/rootfs.tar: ejecuta scripts/rootfs" >&2; exit 1; }
 docker info >/dev/null 2>&1 || { echo "Docker apagado: sudo systemctl start docker" >&2; exit 1; }
+# Binarios del target: se compilan en el host (glibc idéntica a la del rootfs) y se copian a build/bin.
+( cd "$ROOT" && cargo build --release -q -p tui-desktop )
+rm -rf "$BUILD_DIR/bin" && mkdir -p "$BUILD_DIR/bin"
+cp "$ROOT/target/release/tui-desktop" "$BUILD_DIR/bin/"
 docker run --rm \
   -v "$ROOT":/work:ro -v "$BUILD_DIR":/out \
   -v tuios-pacman-cache:/var/cache/pacman/pkg \
