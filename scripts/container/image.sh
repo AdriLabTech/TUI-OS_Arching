@@ -17,6 +17,8 @@ if [ -d /out/bin ]; then
   cp -a --no-preserve=ownership /out/bin/. $R/usr/local/bin/
   chmod 0755 $R/usr/local/bin/*
 fi
+# Sesión no-root (M4): el escritorio corre como `tui`, sin contraseña y sin login (nologin).
+useradd -R $R -m -u 1000 -s /usr/bin/nologin -c 'TUI-OS desktop' tui
 KVER=$(ls $R/usr/lib/modules | head -n1)
 echo "kernel: $KVER"
 

@@ -5,7 +5,8 @@ Conflicts=getty@tty1.service
 After=getty@tty1.service
 
 [Service]
-Environment=TERM=linux HOME=/root
+User=tui
+Environment=TERM=linux HOME=/home/tui
 ExecStart=/usr/local/bin/tui-desktop
 StandardInput=tty
 StandardOutput=tty

@@ -27,7 +27,8 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 - M3-04 Regiones sucias por rectángulo: solo si una medición lo justifica — PLANNED
 
 ## M4 — Sesión (antes del shell: no se abre una shell como root)
-- Usuario no-root con sesión propia, servicio `tui-session`, autologin a la TUI, entorno de recuperación
+- M4-01 Escritorio como usuario `tui` (no root) — CLOSED ([issue](issues/M4-01-sesion-no-root.md))
+- M4-02 Servicio `tui-session`, autologin a la TUI, entorno de recuperación — PLANNED
 
 ## M5 — Terminal embebido (`tui-term`)
 - M5-01 Spike y [ADR-0003](adr/0003-terminal-embebido-pty-y-vt.md): `portable-pty` + `vt100` (o `vte`); `bash`, `htop` y `vim` en una ventana del compositor, con resize — PLANNED

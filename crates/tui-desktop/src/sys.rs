@@ -172,6 +172,37 @@ pub fn os_name() -> String {
     parse_pretty_name(&read("/etc/os-release")).unwrap_or_else(|| "Linux".into())
 }
 
+/// Uid real desde `/proc/self/status` (línea `Uid:\treal\teffective...`).
+pub fn parse_uid(status: &str) -> Option<u32> {
+    status
+        .lines()
+        .find_map(|l| l.strip_prefix("Uid:"))?
+        .split_whitespace()
+        .next()?
+        .parse()
+        .ok()
+}
+
+/// Nombre de usuario de `uid` según el contenido de `/etc/passwd`.
+pub fn parse_passwd_name(passwd: &str, uid: u32) -> Option<String> {
+    passwd.lines().find_map(|l| {
+        let mut f = l.split(':');
+        let name = f.next()?;
+        (f.nth(1)? == uid.to_string()).then(|| name.to_string())
+    })
+}
+
+/// «nombre (uid N)» del usuario que ejecuta el escritorio.
+pub fn current_user() -> String {
+    match parse_uid(&read("/proc/self/status")) {
+        Some(uid) => match parse_passwd_name(&read("/etc/passwd"), uid) {
+            Some(n) => format!("{n} (uid {uid})"),
+            None => format!("uid {uid}"),
+        },
+        None => "?".into(),
+    }
+}
+
 pub fn cpu_model() -> String {
     read("/proc/cpuinfo")
         .lines()
@@ -262,6 +293,19 @@ pub fn clock_utc() -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn uid_and_passwd_name() {
+        assert_eq!(
+            parse_uid("Name:\tx\nUid:\t1000\t1000\t1000\t1000\n"),
+            Some(1000)
+        );
+        assert_eq!(parse_uid("Name:\tx\n"), None);
+        let pw = "root:x:0:0::/root:/bin/bash\ntui:x:1000:1000:TUI:/home/tui:/usr/bin/nologin\n";
+        assert_eq!(parse_passwd_name(pw, 1000).as_deref(), Some("tui"));
+        assert_eq!(parse_passwd_name(pw, 0).as_deref(), Some("root"));
+        assert_eq!(parse_passwd_name(pw, 5), None);
+    }
+
     use super::*;
 
     #[test]

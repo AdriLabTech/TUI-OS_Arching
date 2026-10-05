@@ -129,6 +129,7 @@ pub struct App {
     pub quit: bool,
     size: (u16, u16),
     host: String,
+    user: String,
     kernel: String,
     os: String,
     cpu_model: String,
@@ -157,6 +158,7 @@ impl App {
             quit: false,
             size,
             host: sys::hostname(),
+            user: sys::current_user(),
             kernel: sys::kernel_release(),
             os: sys::os_name(),
             cpu_model: sys::cpu_model(),
@@ -574,6 +576,7 @@ impl App {
             ("SISTEMA", self.os.clone()),
             ("KERNEL", self.kernel.clone()),
             ("EQUIPO", self.host.clone()),
+            ("USUARIO", self.user.clone()),
             (
                 "CPU",
                 format!(
@@ -697,6 +700,7 @@ impl App {
         let x = r.x + 2;
         let rows = [
             ("EQUIPO", self.host.clone()),
+            ("USUARIO", self.user.clone()),
             ("SISTEMA", self.os.clone()),
             ("KERNEL", self.kernel.clone()),
             ("CPU", self.cpu_model.clone()),
