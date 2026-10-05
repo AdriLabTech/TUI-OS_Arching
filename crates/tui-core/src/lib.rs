@@ -5,12 +5,14 @@
 
 pub mod buffer;
 pub mod cell;
+pub mod compositor;
 pub mod event;
 pub mod geometry;
 pub mod surface;
 
 pub use buffer::Buffer;
 pub use cell::{Attrs, Cell, Color, Style};
+pub use compositor::{Compositor, Routed, WindowId};
 pub use event::{Event, KeyCode, KeyEvent, Modifiers, MouseButton, MouseEvent, MouseKind};
 pub use geometry::Rect;
 pub use surface::Surface;

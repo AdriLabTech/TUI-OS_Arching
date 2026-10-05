@@ -21,7 +21,8 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 - M2-05 El escritorio arranca solo en QEMU (adelanto de M4) — CLOSED ([issue](issues/M2-05-escritorio-en-qemu.md))
 
 ## M3 — Compositor
-- Superficies, z-order, foco, recorte, regiones sucias, enrutado de eventos
+- M3-01 Superficies, z-order, foco, recorte y enrutado de eventos — CLOSED ([issue](issues/M3-01-compositor.md))
+- M3-02 Regiones sucias en la composición; decoración y arrastre de ventanas — PLANNED
 
 ## M4 — Sesión
 - Servicio systemd `tui-session`, autologin a la TUI, entorno de recuperación
