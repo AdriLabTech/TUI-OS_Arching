@@ -28,8 +28,10 @@ pub struct Terminal {
 }
 
 impl Terminal {
-    /// Lanza `cmd` en un PTY de `cols` × `rows`.
-    pub fn spawn(cmd: CommandBuilder, cols: u16, rows: u16) -> Result<Terminal, String> {
+    /// Lanza `cmd` en un PTY de `cols` × `rows`. El hijo no hereda la identidad del terminal
+    /// exterior (ver [`strip_outer_terminal_env`]).
+    pub fn spawn(mut cmd: CommandBuilder, cols: u16, rows: u16) -> Result<Terminal, String> {
+        strip_outer_terminal_env(&mut cmd);
         let (cols, rows) = (cols.max(1), rows.max(1));
         let pair = native_pty_system()
             .openpty(size(cols, rows))
@@ -172,6 +174,33 @@ impl Drop for Terminal {
     }
 }
 
+/// Variables que identifican al terminal exterior. Si el hijo las hereda cree hablar con
+/// kitty, WezTerm, iTerm… y emite protocolos (gráficos kitty, OSC propios) que este
+/// terminal no interpreta; fileTUI, por ejemplo, saca así una vista previa vacía.
+const OUTER_TERMINAL_PREFIXES: [&str; 5] = ["KITTY_", "WEZTERM_", "ITERM_", "KONSOLE_", "VTE_"];
+const OUTER_TERMINAL_VARS: [&str; 6] = [
+    "TERM_PROGRAM",
+    "TERM_PROGRAM_VERSION",
+    "TERM_SESSION_ID",
+    "TERMINFO",
+    "WT_SESSION",
+    "COLORTERM",
+];
+
+/// Quita de `cmd` las variables del terminal exterior. `TERM` lo fija quien lanza.
+pub fn strip_outer_terminal_env(cmd: &mut CommandBuilder) {
+    let doomed: Vec<String> = std::env::vars()
+        .map(|(k, _)| k)
+        .filter(|k| {
+            OUTER_TERMINAL_VARS.contains(&k.as_str())
+                || OUTER_TERMINAL_PREFIXES.iter().any(|p| k.starts_with(p))
+        })
+        .collect();
+    for k in doomed {
+        cmd.env_remove(k);
+    }
+}
+
 fn size(cols: u16, rows: u16) -> PtySize {
     PtySize {
         rows,
@@ -285,6 +314,17 @@ mod tests {
         let mut s = Surface::new(20, 4);
         t.draw(&mut s);
         assert_eq!(s.buffer().get(2, 1).unwrap().ch, 'X');
+    }
+
+    #[test]
+    fn el_hijo_no_hereda_la_identidad_del_terminal_exterior() {
+        let mut cmd = sh(r#"echo "[$KITTY_WINDOW_ID|$TERM_PROGRAM|$HOME_OK]""#);
+        // `env` del comando simula el entorno exterior sin tocar el del proceso de prueba.
+        cmd.env("KITTY_WINDOW_ID", "7");
+        cmd.env("HOME_OK", "si");
+        strip_outer_terminal_env(&mut cmd);
+        let mut t = Terminal::spawn(cmd, 40, 3).unwrap();
+        assert!(wait_for(&mut t, "[||si]"), "pantalla: {:?}", t.contents());
     }
 
     #[test]

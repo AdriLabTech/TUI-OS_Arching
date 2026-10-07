@@ -1,5 +1,7 @@
 //! Spike de M5-01: ejecuta un programa en un `Terminal`, vuelca la pantalla y la
 //! vuelve a volcar tras un resize. Uso: `cargo run -p tui-term --example spike -- top`.
+//! `SPIKE_KEYS='j\r'` envía teclas (`\r`, `\e`, `\t`) tras el primer volcado; `SPIKE_SIZE=70x20`
+//! cambia el tamaño del segundo volcado.
 
 use std::thread::sleep;
 use std::time::Duration;
@@ -35,8 +37,24 @@ fn main() {
     let mut cmd = Command::new(&args[0]);
     cmd.args(&args[1..]);
     cmd.env("TERM", "xterm-256color");
+    cmd.cwd(std::env::current_dir().unwrap());
     let mut t = Terminal::spawn(cmd, 100, 30).expect("spawn");
     dump(&mut t, 100, 30);
-    t.resize(70, 20);
-    dump(&mut t, 70, 20);
+    if let Ok(keys) = std::env::var("SPIKE_KEYS") {
+        let keys = keys
+            .replace("\\r", "\r")
+            .replace("\\e", "\x1b")
+            .replace("\\t", "\t");
+        t.send_bytes(keys.as_bytes()).unwrap();
+        dump(&mut t, 100, 30);
+    }
+    let (w, h) = std::env::var("SPIKE_SIZE")
+        .ok()
+        .and_then(|s| {
+            let (w, h) = s.split_once('x')?;
+            Some((w.parse().ok()?, h.parse().ok()?))
+        })
+        .unwrap_or((70, 20));
+    t.resize(w, h);
+    dump(&mut t, w, h);
 }
