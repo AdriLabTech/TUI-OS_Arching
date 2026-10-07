@@ -790,7 +790,7 @@ impl App {
                 _ => {
                     ui::text(b, x, card.y + 1, w, "F1  atajos", ink);
                     ui::text(b, x, card.y + 3, w, "Q   salir", dim);
-                    ui::text(b, x, card.y + 4, w, "0-4 secciones", dim);
+                    ui::text(b, x, card.y + 4, w, "0-5 secciones", dim);
                 }
             }
         }

@@ -7,15 +7,38 @@ TUI-OS es un experimento técnico y artístico: un sistema Linux cuyo escritorio
 tradicional. Linux es la infraestructura; la interfaz y su identidad visual son lo que
 se construye encima, en Rust.
 
-> **Estado: experimental (Milestones 0-2 completos).** Arranca en QEMU/KVM hasta un
-> escritorio TUI funcional. Todavía no hay shell integrada, compositor de ventanas ni
-> pruebas en hardware real.
+> **Estado: experimental (Milestones 0-4 completos, M5 en curso).** Arranca en QEMU/KVM
+> hasta un escritorio TUI que corre sin privilegios y lleva un **terminal embebido** donde
+> se ejecuta un shell y programas reales, como fileTUI. Todavía no hay pruebas en hardware
+> real.
 
 <p align="center">
   <img src="docs/img/inicio.png" alt="Pantalla de inicio de TUI-OS en la consola de la VM" width="780">
 </p>
 <p align="center">
   <img src="docs/img/procesos.png" alt="Lista de procesos de TUI-OS" width="780">
+</p>
+
+### Terminal embebido y herramientas propias
+
+La sección `05 // TERMINAL` ejecuta programas reales dentro del escritorio (PTY + intérprete
+VT). Arriba, `top`; abajo, [fileTUI](docs/apps.md), el gestor de archivos propio que
+sustituye a yazi.
+
+<p align="center">
+  <img src="docs/img/terminal-top.png" alt="top ejecutándose en el terminal embebido de TUI-OS" width="780">
+</p>
+<p align="center">
+  <img src="docs/img/filetui.png" alt="fileTUI navegando por / dentro del terminal embebido" width="780">
+</p>
+
+### Recuperación
+
+Si el escritorio falla 3 veces en 30 s, el sistema cae a un login de texto en tty1 en
+lugar de quedarse en un bucle de reinicios.
+
+<p align="center">
+  <img src="docs/img/recuperacion.png" alt="Login de texto en tty1 tras fallar el escritorio" width="780">
 </p>
 
 *Capturas reales de la consola de la máquina virtual (1280×800), no maquetas.*
@@ -25,7 +48,18 @@ se construye encima, en Rust.
 - **Escritorio TUI** (`tui-desktop`): barra superior con CPU/memoria/hora, menú numerado,
   paneles con título `NN // SECCIÓN`, panel de resumen y barra de atajos. Secciones:
   Inicio, Sistema (CPU por núcleo, memoria, swap), Procesos (desde `/proc`),
-  Archivos (navegador de carpetas) y Ayuda.
+  Archivos (navegador de carpetas), Ayuda y Terminal.
+- **Terminal embebido** (`tui-term`): `portable-pty` + `vt100` volcados a celdas. Ejecuta
+  `sh`, `top`, `btop`, `yazi` y fileTUI, con colores, atributos y redimensionado. Con el foco
+  en el terminal todas las teclas van al programa salvo `Alt+Tab`, que vuelve al menú.
+  Ver [ADR-0003](docs/adr/0003-terminal-embebido-pty-y-vt.md).
+- **Compositor** (`tui-core`): ventanas con z-order, foco, recorte, mosaico y ancho Unicode
+  (CJK, emoji) en celdas. El escritorio actual aún no lo usa: es una vista por secciones.
+- **Sesión sin privilegios**: el escritorio corre como el usuario `tui` (uid 1000) y se
+  recupera solo a un login en tty1 si falla.
+- **Herramientas propias**: fileTUI viene instalado en la imagen; el catálogo y el modelo
+  de integración están en [docs/apps.md](docs/apps.md) y
+  [ADR-0004](docs/adr/0004-apps-de-primera-parte.md).
 - **Runtime TUI** (`tui-core`, `tui-render`): celdas, buffers, superficies con daño,
   eventos de teclado/ratón/redimensionado y un renderer que emite solo lo que cambió.
 - **Imagen arrancable**: rootfs Arch mínimo, disco UEFI (GPT + systemd-boot), arranque en
@@ -93,14 +127,15 @@ para las capturas. `./scripts/bootstrap` comprueba el entorno sin modificar nada
 
 Para ver el escritorio en tu propio terminal, sin QEMU: `cargo run -p tui-desktop`.
 
-**Teclas:** `0-4` secciones · `↑ ↓` mover · `Enter`/`→` abrir · `Tab`/`Esc` foco ·
-`F1` ayuda · `Backspace`/`←` subir de carpeta · `Q`/`Ctrl+Q` salir.
+**Teclas:** `0-5` secciones · `↑ ↓` mover · `Enter`/`→` abrir · `Tab`/`Esc` foco ·
+`F1` ayuda · `Backspace`/`←` subir de carpeta · `Q`/`Ctrl+Q` salir. En el terminal,
+`Alt+Tab` vuelve al menú y el resto de teclas son del programa (ahí `Q` no sale).
 **Recuperación:** la consola serie (`ttyS0`) sigue siendo un login normal; `Ctrl+Alt+F2`
 abre otra consola de texto y salir del escritorio con `Q` deja un login en tty1.
 
 ## Herramientas propias
 
-El sistema incluirá herramientas desarrolladas por nosotros en vez de las habituales (fileTUI en lugar de yazi, y un monitor, un cliente de Docker y uno de Git propios). Catálogo y plan en [docs/apps.md](docs/apps.md).
+El sistema lleva herramientas desarrolladas por nosotros en vez de las habituales: fileTUI en lugar de yazi (ya instalado), y un monitor tipo btop, un cliente de Docker y uno de Git propios (ideas). Cada una es un binario independiente que corre en el terminal embebido. Catálogo y plan en [docs/apps.md](docs/apps.md). `./scripts/image` compila e instala fileTUI desde `~/Proyectos/fileTUI` (`FILETUI_DIR=ruta` cambia el repo; vacío lo omite).
 
 ## Roadmap
 
@@ -120,10 +155,15 @@ El trabajo se organiza en issues con criterios de aceptación y evidencia
 ## Limitaciones conocidas
 
 - **Solo probado en QEMU/KVM**; no hay pruebas en hardware real.
-- La contraseña de root es `tuios` y el escritorio corre como root: **solo para desarrollo**.
+- La contraseña de root es `tuios` (vía de recuperación): **solo para desarrollo**.
 - Sin ratón en la consola de Linux (no hay `gpm`); funciona en emuladores de terminal.
-- Sin ancho Unicode: un carácter ocupa una celda (no hay kanji ni emoji).
-- Sin shell integrada todavía: el escritorio no ejecuta comandos.
+- Terminal embebido: de cada celda solo se dibuja el primer carácter (grafemas con
+  combinantes o emoji compuestos salen mal, M5-02), la fuente Terminus no tiene CJK, emoji
+  ni iconos Nerd Font (M5-03) y `vt100` no responde a consultas del programa ni implementa
+  REP; HVP se parchea. Sin verificar con `htop` ni `vim`.
+- Las imágenes de fileTUI no se ven: solo funcionan con el protocolo gráfico de kitty o
+  WezTerm; aquí muestra los metadatos y un aviso.
+- El terminal hereda el entorno del escritorio (menos el del terminal exterior).
 
 ## Estilo visual y créditos
 
