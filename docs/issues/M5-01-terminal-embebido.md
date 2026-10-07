@@ -23,7 +23,8 @@ Ejecutar programas reales (shell, apps de pantalla completa) dentro del escritor
 - VERIFIED (1-2): `scripts/test` (fmt, clippy `-D warnings`, 40+ tests) sin fallos; tests de PTY reales (`sh -c`), teclas, HVP y del flujo completo en `App`
 - VERIFIED (spike): `top` y `btop` a 100×30 y tras resize a 70×20; btop contra pyte dio pantallas idénticas tras `compat`. btop a 70×20 muestra su propio aviso de tamaño mínimo (80×24), que es lo correcto
 - VERIFIED: `yazi` se dibuja (sus iconos Nerd Font son de la deuda M5-03)
-- UNVERIFIED: `htop`, `vim` (ausentes); ejecución en el target QEMU (no se reconstruyó la imagen; Docker apagado) ni en la consola de Linux; `cargo audit` (no instalado)
+- VERIFIED (6, 2026-10-07): imagen reconstruida; en QEMU el terminal abre `sh` como `tui`, ejecuta fileTUI y ALT+TAB vuelve al menú (capturas en `build/shots/`)
+- UNVERIFIED: `htop`, `vim` (ausentes); `cargo audit` (no instalado)
 
 ## Archivos cambiados
 `crates/tui-term/**` (nuevo), `crates/tui-desktop/src/{app,main}.rs`, `crates/tui-desktop/Cargo.toml`, `Cargo.lock`, ADR-0003, roadmap.
@@ -31,5 +32,5 @@ Ejecutar programas reales (shell, apps de pantalla completa) dentro del escritor
 ## Limitaciones / deuda
 - `vt100` 0.16.2 no implementa: HVP (parcheado en `compat`), REP (`CSI b`), respuestas a DSR/DA/consultas de color, ANSI save/restore (`CSI s/u`). **Si aparece un segundo hueco que haya que parchear, pasar a `vte` + modelo propio** (criterio del ADR).
 - Solo se dibuja el primer `char` de cada celda (M5-02).
-- Con el terminal enfocado Q/ESC/CTRL+Q no salen del escritorio: la salida es ALT+TAB y luego Q. En la consola de Linux ALT+TAB lo envía el teclado como ESC+TAB; sin probar en el target.
+- Con el terminal enfocado Q/ESC/CTRL+Q no salen del escritorio: la salida es ALT+TAB y luego Q. ALT+TAB funciona en la consola de Linux del target (probado en QEMU).
 - El hijo hereda el entorno del escritorio.

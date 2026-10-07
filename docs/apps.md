@@ -4,7 +4,7 @@ Principio: **el sistema no instala herramientas de terceros donde pueda haber un
 
 | Herramienta | Sustituye a | Estado | Repo / ubicación | Notas |
 |---|---|---|---|---|
-| **fileTUI** | yazi (y `mc`, `ranger`) | Existe: base terminada, visor de imágenes en curso | `~/Proyectos/fileTUI` (Rust, Ratatui, Crossterm) | Será el gestor de archivos por defecto. Probado en el terminal embebido (host): funciona, salvo las imágenes (solo kitty/WezTerm; ver ADR-0004). Pendiente: render de imágenes más rápido, PDF. |
+| **fileTUI** | yazi (y `mc`, `ranger`) | Existe: base terminada, visor de imágenes en curso | `~/Proyectos/fileTUI` (Rust, Ratatui, Crossterm) | Será el gestor de archivos por defecto. Instalado en la imagen (`scripts/image`) y verificado en QEMU: funciona, salvo las imágenes (solo kitty/WezTerm; ver ADR-0004). Pendiente: render de imágenes más rápido, PDF. |
 | Monitor de sistema | btop | Idea | sin repo | Procesos, CPU, memoria, disco, red. Hoy el escritorio ya tiene SISTEMA y PROCESOS básicos como germen. |
 | Cliente de Docker | lazydocker | Idea | sin repo | Contenedores, imágenes, logs, volúmenes. |
 | Cliente de Git | lazygit | Idea | sin repo | Estado, staging por hunks, ramas, log, stash. |

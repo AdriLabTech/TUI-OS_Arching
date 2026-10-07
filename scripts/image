@@ -9,6 +9,13 @@ docker info >/dev/null 2>&1 || { echo "Docker apagado: sudo systemctl start dock
 rm -rf "$BUILD_DIR/bin" && mkdir -p "$BUILD_DIR/bin"
 # TUIOS_DESKTOP_BIN: binario alternativo (p. ej. uno que falla) para probar la recuperación.
 cp "${TUIOS_DESKTOP_BIN:-$ROOT/target/release/tui-desktop}" "$BUILD_DIR/bin/tui-desktop"
+# Herramientas propias (docs/apps.md) que viven en su repo: se compilan y se copian si existen.
+# FILETUI_DIR=ruta cambia el repo; FILETUI_DIR= (vacío) lo omite.
+FILETUI_DIR="${FILETUI_DIR-$HOME/Proyectos/fileTUI}"
+if [ -n "$FILETUI_DIR" ] && [ -f "$FILETUI_DIR/Cargo.toml" ]; then
+  ( cd "$FILETUI_DIR" && cargo build --release -q )
+  cp "$FILETUI_DIR/target/release/filetui" "$BUILD_DIR/bin/filetui"
+fi
 docker run --rm \
   -v "$ROOT":/work:ro -v "$BUILD_DIR":/out \
   -v tuios-pacman-cache:/var/cache/pacman/pkg \

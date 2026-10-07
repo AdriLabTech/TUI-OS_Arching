@@ -18,4 +18,9 @@
 - fileTUI (rama `feat/fullscreen-viewer`) se dibuja en el terminal embebido a 100×30: tres paneles, navegación, panel de información, visor a pantalla completa y salida con `q`.
 - **Hallazgo:** el hijo heredaba `KITTY_WINDOW_ID` del terminal exterior, fileTUI creía tener gráficos kitty y el panel de la imagen salía vacío. `tui-term` ahora quita de su entorno las variables del terminal exterior (`KITTY_*`, `WEZTERM_*`, `TERM_PROGRAM*`, `TERMINFO`, `COLORTERM`…), con test.
 - **Imágenes: no funcionan** en el terminal embebido. fileTUI las limita a kitty/WezTerm y cae a metadatos más el aviso «Image preview needs the Kitty graphics protocol»; `vt100` además descarta los gráficos y la consola de Linux no puede mostrarlos. Es un límite del medio (texto), no de fileTUI. Solo serían posibles con un modo gráfico futuro.
-- Sin verificar: ratón, iconos y fuente Terminus, rendimiento con directorios grandes y fileTUI dentro del target QEMU (hay que compilarlo para el rootfs e instalarlo en la imagen).
+- Sin verificar: ratón, iconos Nerd Font, rendimiento con directorios grandes.
+
+## Prueba en el target QEMU (2026-10-07)
+- `scripts/image` compila fileTUI desde `~/Proyectos/fileTUI` (`FILETUI_DIR`, vacío = omitir) y lo instala en `/usr/local/bin/filetui` (depende solo de glibc y libgcc_s, presentes en el rootfs). yazi nunca estuvo en `config/packages.txt`: no hay nada que quitar.
+- VERIFIED con capturas (`build/shots/shell.png`, `filetui.png`, `raiz.png`, `menu.png`): en la consola de Linux como usuario `tui`, `5` abre el terminal con `sh`, `filetui` se dibuja con tres paneles, colores de la paleta del sistema y navegación por flechas, `q` vuelve al shell y **ALT+TAB devuelve el foco al menú**.
+- Sin verificar: imágenes (no aplican), `htop`/`vim` (no instalados en el target).
