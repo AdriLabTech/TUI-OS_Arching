@@ -98,6 +98,10 @@ Para ver el escritorio en tu propio terminal, sin QEMU: `cargo run -p tui-deskto
 **Recuperación:** la consola serie (`ttyS0`) sigue siendo un login normal; `Ctrl+Alt+F2`
 abre otra consola de texto y salir del escritorio con `Q` deja un login en tty1.
 
+## Herramientas propias
+
+El sistema incluirá herramientas desarrolladas por nosotros en vez de las habituales (fileTUI en lugar de yazi, y un monitor, un cliente de Docker y uno de Git propios). Catálogo y plan en [docs/apps.md](docs/apps.md).
+
 ## Roadmap
 
 El trabajo se organiza en issues con criterios de aceptación y evidencia

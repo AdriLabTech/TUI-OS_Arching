@@ -40,6 +40,7 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 - Prerrequisitos: M3-03 (mosaico) y M4 (sesión no-root).
 
 ## M6 — Apps de primera parte y comandos
+- Herramientas propias en lugar de las de terceros (fileTUI, monitor, cliente Docker, cliente Git…): ver [apps.md](apps.md) y [ADR-0004](adr/0004-apps-de-primera-parte.md)
 - Secciones del escritorio como apps/ventanas, convenciones de teclas (F1, ESC, CTRL+Q, ALT+TAB)
 - `tui system|network|processes|storage|settings|install`, frontend de pacman
 
