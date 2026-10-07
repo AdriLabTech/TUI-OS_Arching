@@ -64,6 +64,7 @@ Más detalle en [docs/architecture.md](docs/architecture.md).
 crates/
   tui-core/      Cell, Buffer, Surface, Rect y eventos de entrada
   tui-render/    renderer diferencial, Terminal (raw mode, pantalla alternativa), paleta
+  tui-term/      terminal embebido: PTY (portable-pty) + intérprete VT (vt100) sobre celdas
   tui-desktop/   el escritorio: tema, capa de sistema (/proc), widgets y aplicaciones
 config/
   packages.txt   paquetes del rootfs del target
@@ -107,9 +108,9 @@ El trabajo se organiza en issues con criterios de aceptación y evidencia
 | M0 | Cimientos: repo, docs, workspace y scripts | Completo |
 | M1 | Target arrancable: rootfs, imagen UEFI, QEMU, prueba de arranque | Completo |
 | M2 | Runtime TUI, entrada, escritorio y arranque en QEMU | Completo |
-| M3 | Compositor: ventanas, z-order, foco, recorte, regiones sucias | Pendiente |
-| M4 | Sesión de usuario, autologin, entorno de recuperación | Pendiente |
-| M5 | Aplicaciones de primera parte, terminal embebida | Pendiente |
+| M3 | Compositor: ventanas, z-order, foco, recorte, mosaico (regiones sucias, M3-04, si se mide) | Completo |
+| M4 | Sesión de usuario sin root, recuperación en tty1 | Completo |
+| M5 | Terminal embebido (PTY + VT); M5-01 hecho, grafemas y Unicode pendientes | En curso |
 | M6 | Comandos `tui …` y frontend de paquetes sobre pacman | Pendiente |
 
 ## Limitaciones conocidas

@@ -8,3 +8,4 @@ publish.workspace = true
 [dependencies]
 tui-core = { path = "../tui-core" }
 tui-render = { path = "../tui-render" }
+tui-term = { path = "../tui-term" }

@@ -31,7 +31,7 @@ Estados: PLANNED → READY → IN PROGRESS → IMPLEMENTED → VERIFIED → DOCU
 - M4-02 Recuperación: tras 3 fallos el escritorio cae a un login en tty1 — CLOSED ([issue](issues/M4-02-recuperacion.md))
 
 ## M5 — Terminal embebido (`tui-term`)
-- M5-01 Spike y [ADR-0003](adr/0003-terminal-embebido-pty-y-vt.md): `portable-pty` + `vt100` (o `vte`); `bash`, `htop` y `vim` en una ventana del compositor, con resize — PLANNED
+- M5-01 Spike y [ADR-0003](adr/0003-terminal-embebido-pty-y-vt.md): `portable-pty` + `vt100`; shell, `top`, `btop` y `yazi` en la sección TERMINAL, con resize — CLOSED (target, `htop` y `vim` pendientes de verificar) ([issue](issues/M5-01-terminal-embebido.md))
 - M5-02 Texto real en el terminal: grafemas (`unicode-segmentation`: combinantes y emoji ZWJ, hoy descartados o partidos) — PLANNED
 - M5-03 Deuda de `unicode-width` heredada de M3-02 — PLANNED:
   - el ancho de emoji lo decide cada emulador, no el estándar: probar en el target y en un terminal real, con tabla de excepciones si hace falta;

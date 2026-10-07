@@ -1,0 +1,11 @@
+[package]
+name = "tui-term"
+description = "Terminal embebido de TUI-OS: PTY + intérprete VT dentro de una superficie (M5)"
+edition.workspace = true
+version.workspace = true
+publish.workspace = true
+
+[dependencies]
+tui-core = { path = "../tui-core" }
+portable-pty = "0.9.0"
+vt100 = "0.16.2"

@@ -10,6 +10,7 @@ use tui_core::{
 use crate::sys::{self, CpuTimes, Entry, MemInfo, Proc, Snapshot};
 use crate::theme::{self, style};
 use crate::ui;
+use tui_term::{Command, Terminal as Pty};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Section {
@@ -18,14 +19,16 @@ pub enum Section {
     Processes,
     Files,
     Help,
+    Terminal,
 }
 
-pub const SECTIONS: [(Section, &str); 5] = [
+pub const SECTIONS: [(Section, &str); 6] = [
     (Section::Home, "INICIO"),
     (Section::System, "SISTEMA"),
     (Section::Processes, "PROCESOS"),
     (Section::Files, "ARCHIVOS"),
     (Section::Help, "AYUDA"),
+    (Section::Terminal, "TERMINAL"),
 ];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -141,6 +144,10 @@ pub struct App {
     proc_sel: usize,
     files: Files,
     ticks: u64,
+    /// Terminal embebido (sección TERMINAL): se lanza al entrar y se suelta al salir el hijo.
+    pty: Option<Pty>,
+    pty_error: Option<String>,
+    shell: String,
 }
 
 const HIST: usize = 240;
@@ -170,7 +177,56 @@ impl App {
             proc_sel: 0,
             files: Files::open(home),
             ticks: 0,
+            pty: None,
+            pty_error: None,
+            shell: std::env::var("SHELL").unwrap_or_else(|_| "/bin/sh".into()),
         }
+    }
+
+    /// Interior de la ventana de contenido: lo que ve el terminal embebido.
+    fn term_area(&self) -> Rect {
+        ui::inset(layout(self.size.0, self.size.1).content, 1)
+    }
+
+    /// Mantiene el terminal embebido: lo lanza al entrar en su sección, lo ajusta al
+    /// tamaño de la ventana, consume su salida y lo suelta cuando el hijo termina.
+    /// Devuelve si hay que redibujar.
+    pub fn update(&mut self) -> bool {
+        let area = self.term_area();
+        if self.section == Section::Terminal
+            && self.pty.is_none()
+            && self.pty_error.is_none()
+            && area.width > 0
+            && area.height > 0
+        {
+            let mut cmd = Command::new(&self.shell);
+            cmd.env("TERM", "xterm-256color");
+            if let Some(home) = std::env::var_os("HOME") {
+                cmd.cwd(home);
+            }
+            match Pty::spawn(cmd, area.width, area.height) {
+                Ok(p) => self.pty = Some(p),
+                Err(e) => self.pty_error = Some(e),
+            }
+            return true;
+        }
+        let Some(p) = self.pty.as_mut() else {
+            return false;
+        };
+        p.resize(area.width, area.height);
+        let changed = p.poll();
+        if p.is_closed() {
+            self.pty = None;
+            self.focus = Focus::Rail;
+            self.section = Section::Home; // si no, `update` lo relanzaría al instante
+            return true;
+        }
+        changed
+    }
+
+    /// Con un terminal vivo hay que sondear a menudo: su salida no despierta al bucle.
+    pub fn wants_fast_poll(&self) -> bool {
+        self.pty.is_some()
     }
 
     pub fn resize(&mut self, w: u16, h: u16) {
@@ -230,6 +286,20 @@ impl App {
     }
 
     fn on_key(&mut self, k: KeyEvent) {
+        // Con el terminal enfocado todo va al hijo, salvo ALT+TAB (volver al menú): ESC,
+        // Q y CTRL+Q son teclas de los programas (vim, less).
+        if self.section == Section::Terminal && self.focus == Focus::Content {
+            if k.is(KeyCode::Tab, Modifiers::ALT) {
+                self.focus = Focus::Rail;
+            } else if let Some(p) = self.pty.as_mut() {
+                let _ = p.send_key(k);
+            } else if k.is(KeyCode::Enter, Modifiers::NONE) {
+                self.pty_error = None; // reintentar el lanzamiento en el próximo `update`
+            } else if matches!(k.code, KeyCode::Esc) {
+                self.focus = Focus::Rail;
+            }
+            return;
+        }
         if k.is(KeyCode::Char('q'), Modifiers::CTRL) || k.is(KeyCode::Char('q'), Modifiers::NONE) {
             self.quit = true;
             return;
@@ -238,7 +308,7 @@ impl App {
             self.section = Section::Help;
             return;
         }
-        if let KeyCode::Char(c @ '0'..='4') = k.code
+        if let KeyCode::Char(c @ '0'..='5') = k.code
             && k.mods == Modifiers::NONE
         {
             self.select(c as usize - '0' as usize);
@@ -530,6 +600,37 @@ impl App {
             Section::Processes => self.draw_processes(b, inner),
             Section::Files => self.draw_files(b, inner),
             Section::Help => draw_help(b, inner),
+            Section::Terminal => self.draw_terminal(b, inner),
+        }
+    }
+
+    fn draw_terminal(&self, b: &mut Buffer, r: Rect) {
+        let Some(p) = &self.pty else {
+            let msg = match &self.pty_error {
+                Some(e) => format!("No se pudo iniciar el terminal: {e}. ENTER para reintentar."),
+                None => "Iniciando terminal...".to_string(),
+            };
+            ui::text(
+                b,
+                r.x + 1,
+                r.y,
+                r.width.saturating_sub(1),
+                &msg,
+                style(theme::MUTED, theme::PAPER),
+            );
+            return;
+        };
+        let cursor = p.draw_with(r.width, r.height, |x, y, cell| {
+            b.set(r.x + x, r.y + y, cell);
+        });
+        if let (Some((cx, cy)), Focus::Content) = (cursor, self.focus)
+            && let Some(cell) = b.get(r.x + cx, r.y + cy).copied()
+            && cx < r.width
+            && cy < r.height
+        {
+            let mut cell = cell;
+            cell.style.attrs = cell.style.attrs.union(tui_core::Attrs::REVERSE);
+            b.set(r.x + cx, r.y + cy, cell);
         }
     }
 
@@ -615,7 +716,7 @@ impl App {
 
     /// Cuatro tarjetas de acceso rápido con un dato vivo de cada sección.
     fn draw_cards(&self, b: &mut Buffer, r: Rect) {
-        for (i, (_, name)) in SECTIONS.iter().skip(1).enumerate() {
+        for (i, (_, name)) in SECTIONS.iter().skip(1).take(4).enumerate() {
             let (x0, x1) = (
                 r.x + i as u16 * r.width / 4,
                 r.x + (i as u16 + 1) * r.width / 4,
@@ -1024,7 +1125,7 @@ fn draw_logo(b: &mut Buffer, x: u16, y: u16, max: u16) -> u16 {
 fn draw_help(b: &mut Buffer, r: Rect) {
     let keys = [
         ("F1", "Esta ayuda"),
-        ("0-4", "Ir a una sección"),
+        ("0-5", "Ir a una sección"),
         ("↑ ↓", "Mover selección"),
         ("ENTER / →", "Abrir / entrar en la sección"),
         ("TAB / ESC", "Cambiar foco entre menú y contenido"),
@@ -1032,6 +1133,7 @@ fn draw_help(b: &mut Buffer, r: Rect) {
         ("Backspace / ←", "Subir de carpeta (Archivos)"),
         ("Ratón", "Clic para elegir; rueda para desplazar"),
         ("Q / CTRL+Q", "Salir"),
+        ("ALT+TAB", "Terminal: volver al menú"),
     ];
     for (i, (k, d)) in keys.iter().enumerate() {
         let y = r.y + 1 + i as u16;
@@ -1175,6 +1277,53 @@ mod tests {
                 a.draw(&mut Buffer::new(w, h)); // no debe entrar en pánico
             }
         }
+    }
+
+    #[test]
+    fn terminal_section_runs_a_shell_and_routes_keys() {
+        use std::time::{Duration, Instant};
+        let mut a = App::new((100, 30));
+        a.shell = "/bin/sh".into();
+        a.on_event(key(KeyCode::Char('5')));
+        assert_eq!(a.section, Section::Terminal);
+        assert!(!a.wants_fast_poll());
+        a.update();
+        assert!(a.wants_fast_poll());
+        a.on_event(key(KeyCode::Enter)); // rail -> contenido
+        assert_eq!(a.focus, Focus::Content);
+        // En el terminal, 'q' y ESC son del hijo: no salen ni cambian el foco.
+        for c in "echo q-$((6*7))".chars() {
+            a.on_event(key(KeyCode::Char(c)));
+        }
+        a.on_event(key(KeyCode::Enter));
+        a.on_event(key(KeyCode::Esc));
+        assert!(!a.quit && a.focus == Focus::Content);
+        a.on_event(key(KeyCode::Enter)); // ESC+ENTER: readline lo consume sin efecto
+        let end = Instant::now() + Duration::from_secs(5);
+        let mut seen = false;
+        while Instant::now() < end && !seen {
+            a.update();
+            let mut b = Buffer::new(100, 30);
+            a.draw(&mut b);
+            seen = text_of(&b).contains("q-42");
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(seen, "la salida del shell no llegó a la pantalla");
+        a.on_event(Event::Key(KeyEvent::new(KeyCode::Tab, Modifiers::ALT)));
+        assert_eq!(a.focus, Focus::Rail);
+        // Al terminar el shell se vuelve a Inicio y se suelta el terminal.
+        a.on_event(key(KeyCode::Enter));
+        for c in "exit".chars() {
+            a.on_event(key(KeyCode::Char(c)));
+        }
+        a.on_event(key(KeyCode::Enter));
+        let end = Instant::now() + Duration::from_secs(5);
+        while a.wants_fast_poll() && Instant::now() < end {
+            a.update();
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        assert!(!a.wants_fast_poll());
+        assert_eq!(a.section, Section::Home);
     }
 
     #[test]

@@ -61,12 +61,14 @@ fn main() -> std::io::Result<()> {
         let mut buf = Buffer::new(w, h);
         app.draw(&mut buf);
         renderer.render(term.writer(), &buf)?;
-        if let Some(ev) = term.poll_event(Duration::from_millis(200))? {
+        let timeout = if app.wants_fast_poll() { 16 } else { 200 };
+        if let Some(ev) = term.poll_event(Duration::from_millis(timeout))? {
             if let tui_core::Event::Resize { width, height } = ev {
                 (w, h) = (width, height);
             }
             app.on_event(ev);
         }
+        app.update();
         if last_tick.elapsed() >= Duration::from_secs(1) {
             app.tick();
             last_tick = Instant::now();
