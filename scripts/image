@@ -16,6 +16,12 @@ if [ -n "$FILETUI_DIR" ] && [ -f "$FILETUI_DIR/Cargo.toml" ]; then
   ( cd "$FILETUI_DIR" && cargo build --release -q )
   cp "$FILETUI_DIR/target/release/filetui" "$BUILD_DIR/bin/filetui"
 fi
+# SYSTUI_DIR=ruta cambia el repo; SYSTUI_DIR= (vacío) lo omite.
+SYSTUI_DIR="${SYSTUI_DIR-$HOME/Proyectos/sysTUI}"
+if [ -n "$SYSTUI_DIR" ] && [ -f "$SYSTUI_DIR/Cargo.toml" ]; then
+  ( cd "$SYSTUI_DIR" && cargo build --release -q )
+  cp "$SYSTUI_DIR/target/release/systui" "$BUILD_DIR/bin/systui"
+fi
 docker run --rm \
   -v "$ROOT":/work:ro -v "$BUILD_DIR":/out \
   -v tuios-pacman-cache:/var/cache/pacman/pkg \

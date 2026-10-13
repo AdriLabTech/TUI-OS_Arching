@@ -24,3 +24,8 @@
 - `scripts/image` compila fileTUI desde `~/Proyectos/fileTUI` (`FILETUI_DIR`, vacío = omitir) y lo instala en `/usr/local/bin/filetui` (depende solo de glibc y libgcc_s, presentes en el rootfs). yazi nunca estuvo en `config/packages.txt`: no hay nada que quitar.
 - VERIFIED con capturas (`build/shots/shell.png`, `filetui.png`, `raiz.png`, `menu.png`): en la consola de Linux como usuario `tui`, `5` abre el terminal con `sh`, `filetui` se dibuja con tres paneles, colores de la paleta del sistema y navegación por flechas, `q` vuelve al shell y **ALT+TAB devuelve el foco al menú**.
 - Sin verificar: imágenes (no aplican), `htop`/`vim` (no instalados en el target).
+
+## sysTUI en el target (2026-10-13)
+- `scripts/image` compila sysTUI desde `~/Proyectos/sysTUI` (`SYSTUI_DIR`, vacío = omitir) y lo instala en `/usr/local/bin/systui` (solo glibc y libgcc_s).
+- VERIFIED con capturas (`docs/img/systui.png`, `systui-memoria.png`): en QEMU, `5`, `Enter` y `systui` dibujan CPU por núcleo, memoria/swap, red, disco y la tabla de procesos con la paleta del sistema; el orden por CPU (`c`) y por memoria (`m`) cambia la tabla y la barra inferior. Las barras salen con la fuente de la consola de Linux (relleno punteado), no con bloques lisos.
+- Sin verificar en el target: filtro (`/`), ayuda (`?`) y terminar proceso; las teclas de esas capturas no llegaron como se esperaba a través de `sendkey` (distribución de teclado de la VM). Sí están probadas en tmux en el repo de sysTUI.

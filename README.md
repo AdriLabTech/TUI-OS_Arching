@@ -23,13 +23,16 @@ se construye encima, en Rust.
 
 La sección `05 // TERMINAL` ejecuta programas reales dentro del escritorio (PTY + intérprete
 VT). Arriba, `top`; abajo, [fileTUI](docs/apps.md), el gestor de archivos propio que
-sustituye a yazi.
+sustituye a yazi, y [sysTUI](docs/apps.md), el monitor de sistema propio que sustituye a btop.
 
 <p align="center">
   <img src="docs/img/terminal-top.png" alt="top ejecutándose en el terminal embebido de TUI-OS" width="780">
 </p>
 <p align="center">
   <img src="docs/img/filetui.png" alt="fileTUI navegando por / dentro del terminal embebido" width="780">
+</p>
+<p align="center">
+  <img src="docs/img/systui.png" alt="sysTUI mostrando CPU, memoria, red, disco y procesos dentro de TUI-OS (QEMU)" width="780">
 </p>
 
 ### Recuperación
@@ -57,7 +60,7 @@ lugar de quedarse en un bucle de reinicios.
   (CJK, emoji) en celdas. El escritorio actual aún no lo usa: es una vista por secciones.
 - **Sesión sin privilegios**: el escritorio corre como el usuario `tui` (uid 1000) y se
   recupera solo a un login en tty1 si falla.
-- **Herramientas propias**: fileTUI viene instalado en la imagen; el catálogo y el modelo
+- **Herramientas propias**: fileTUI y sysTUI vienen instalados en la imagen; el catálogo y el modelo
   de integración están en [docs/apps.md](docs/apps.md) y
   [ADR-0004](docs/adr/0004-apps-de-primera-parte.md).
 - **Runtime TUI** (`tui-core`, `tui-render`): celdas, buffers, superficies con daño,
@@ -135,7 +138,7 @@ abre otra consola de texto y salir del escritorio con `Q` deja un login en tty1.
 
 ## Herramientas propias
 
-El sistema lleva herramientas desarrolladas por nosotros en vez de las habituales: fileTUI en lugar de yazi (ya instalado), y un monitor tipo btop, un cliente de Docker y uno de Git propios (ideas). Cada una es un binario independiente que corre en el terminal embebido. Catálogo y plan en [docs/apps.md](docs/apps.md). `./scripts/image` compila e instala fileTUI desde `~/Proyectos/fileTUI` (`FILETUI_DIR=ruta` cambia el repo; vacío lo omite).
+El sistema lleva herramientas desarrolladas por nosotros en vez de las habituales: fileTUI en lugar de yazi y sysTUI en lugar de btop (ambos ya instalados), y un cliente de Docker y uno de Git propios (ideas). Cada una es un binario independiente que corre en el terminal embebido. Catálogo y plan en [docs/apps.md](docs/apps.md). `./scripts/image` compila e instala fileTUI y sysTUI desde `~/Proyectos/fileTUI` y `~/Proyectos/sysTUI` (`FILETUI_DIR` / `SYSTUI_DIR` cambian el repo; vacío lo omite).
 
 ## Roadmap
 
