@@ -198,6 +198,10 @@ Lo adaptado, en términos de TUI:
 
 Los tokens viven en [`crates/tui-desktop/src/theme.rs`](crates/tui-desktop/src/theme.rs).
 
+## Comunidad
+
+Dudas, ideas y feedback sobre TUI-OS en el [Discord de Low Noise](https://discord.gg/J7yf4CfT3P) (canal `#build`). Los vídeos de la serie, en [YouTube](https://www.youtube.com/@Low_Noise-n4e).
+
 ## Licencia
 
 Pendiente de decidir.
