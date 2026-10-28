@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/hero.svg" alt="TUI-OS_Arching" width="100%"></p>
+
 # TUI-OS
 
 **¿Cómo sería un sistema operativo moderno si un terminal fuese su interfaz gráfica?**
